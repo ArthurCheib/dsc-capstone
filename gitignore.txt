@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 X.api-passwords
-clean-data/1-commercial_licenses_original.csv
-clean-data/2-commercial_licenses_translated.csv
-clean-data/3-commercial_licenses_cleaned.csv
+clean-data/1-commercial_licenses_original
+clean-data/2-commercial_licenses_translated
+clean-data/3-commercial_licenses_cleaned
