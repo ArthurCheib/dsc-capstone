@@ -1,0 +1,170 @@
+---
+title: "Capstone Questions"
+author: "Arthur Cheib"
+date: "2023-11-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+## Libraries
+library(tidyverse)
+library(here)
+library(sf)
+library(readxl)
+library(scales)
+library(janitor)
+library(openxlsx)
+library(leaflet)
+capstone_dir <- here('2023', 'Capstone')
+capstone_raw_data <- here(capstone_dir, 'raw-data')
+capstone_clean_data <- here(capstone_dir, 'clean-data')
+
+```
+
+```{r}
+## Data
+commercial_data_ar <- read_csv(here(capstone_clean_data, '3-commercial_licenses_cleaned.csv'))
+
+## Keeping only EN columns and orderering the time period
+commercial_data_en <- commercial_data_ar %>% 
+  select(c(1), contains(c('EN', 'date', 'code'))) %>% 
+  select(1,10,2,11,3,13,5,12,4,6,7,8,9)
+
+## Geo data
+# Rivers
+saudi_rivers <- st_read(here(capstone_dir, 'geo-data', 'sau_rivers', 'riverl_sau.shp'))
+
+# Airports
+saudi_airports <- st_read(here(capstone_dir, 'geo-data', 'sau_airports', 'airp_sau.shp'))
+
+# Saudi adm-division1
+saudi_adm1 <- st_read(here(capstone_dir, 'geo-data', 'sau_adm_division', 'SAU_adm1.shp'))
+
+head(st_geometry(saudi_rivers))
+head(st_geometry(saudi_airports))
+head(st_geometry(saudi_adm1))
+
+# Initialize a leaflet map
+m <- leaflet() %>% 
+  addProviderTiles(providers$OpenStreetMap) # Add default OpenStreetMap base layer
+
+# Add the shapefile layers to the map
+m <- m %>% 
+  #addPolygons(data = saudi_adm1, color = "#444444", weight = 1, fillOpacity = 0.5)
+  addPolylines(data = saudi_rivers, color = "blue", weight = 1)
+  addCircleMarkers(data = saudi_airports, color = "red", radius = 2)
+
+
+saudi_airports %>% 
+  leaflet() %>% 
+  addProviderTiles(providers$OpenStreetMap) %>% 
+  addCircleMarkers(color = "red", radius = 2) %>% 
+  addPolygons(data = saudi_adm1, weight = 1, fillOpacity = 0.5, fill = '#444444', dashArray = TRUE)
+
+saudi_adm1$VARNAME_1
+commercial_data_en$municipality_EN %>% 
+  unique() %>% 
+  sort()
+```
+
+## Question 1: which Municipalities Attract the Most Business Activity?
+
+**Objective:** Understand the geographical distribution of businesses.
+**Skills Practiced:** Data aggregation, visualization, and interpretation.
+**Expected Outcome:** A ranked list of municipalities based on the number of businesses. Visualizations (bar/line charts) that show the number of businesses in each municipality.
+
+```{r}
+## Commercial licenses per region
+licenses_by_region <- commercial_data_en %>%
+  count(municipality_EN, sort = TRUE)
+
+# Plotting (by region)
+licenses_by_region %>%
+  ggplot(aes(x = reorder(municipality_EN, n), y = n)) +
+  geom_bar(stat = "identity", fill = "#56B4E9") +
+  scale_y_continuous(limits = c(0, 200000),
+                     breaks = seq(0, 200000, by = 200000/8)) +
+  coord_flip() + 
+  labs(title = "Business Activity by Municipality", 
+       y = "Number of Businesses", 
+       x = "Municipality",
+       caption = "Source: Saudi Arabia Open Data (www.od.data.gov.sa)") +
+  geom_text(aes(label = scales::comma(n)), 
+            hjust = -0.5, fontface = "bold", size = 3) +
+  theme_minimal()
+
+## Commercial licenses per municipality
+commercial_data_en %>%
+  count(municipality_branch_EN, sort = TRUE)
+
+
+  
+```
+
+
+## Question 2: within Top 5 Municipalities, Which Branches See the Highest Concentration of Businesses?
+
+**Objective:** Delve deeper into the municipalities to understand branch-wise distribution.
+**Skills Practiced:** conditional filtering, aggregation, and visualization.
+**Expected Outcome:** identification of top branches within major municipalities. Branch-wise distribution visualizations for top municipalities.
+
+```{r}
+## Getting the top5 regions
+top_five_municipalities <- licenses_by_region %>% 
+  head(5) %>% 
+  pull(municipality_EN)
+
+## Filtering and breaking it down by branches
+top5_per_municipality_branch <- commercial_data_en %>% 
+  filter(municipality_EN %in% top_five_municipalities) %>% 
+  group_by(municipality_EN, municipality_branch_EN) %>% 
+  summarize(total_business = n_distinct(id)) %>% 
+  arrange(municipality_EN, desc(total_business)) %>% 
+  ungroup()
+
+```
+
+## Question 3: what Are the Most Common Business Categories and Subcategories Across Different Municipalities?
+
+**Objective:** identify dominant business types in various regions.
+**Skills Practiced:** categorization, data aggregation, and visualization.
+**Expected Outcome:** a breakdown of business categories and subcategories for each municipality. Pie charts or donut charts representing the share of each business category and subcategory
+
+```{r}
+
+```
+
+## Question 4: how Do Business Issuances and Renewals Vary Across Municipalities and Branches?
+
+**Objective:** understand the dynamics of new business entries vs. existing businesses.
+**Skills Practiced:** data filtering, time series analysis, and visualization.
+**Expected Outcome:** a visualization (stacked bar chart/line chart) showing the number of business issuances and renewals for each municipality and branch over time.
+
+```{r}
+
+```
+
+## Question 5: predicting the Future: Which Municipalities and Branches Are Likely to See a Surge in Renewals in the Coming Year?
+
+**Objective:** use the expiration data to forecast future renewal demands.
+**Skills Practiced:** date-time manipulation, linear regression, and data visualization.
+**Expected Outcome:** a forecasted list of municipalities and branches that might see a high number of renewals in the upcoming year. A heatmap or calendar visualization indicating the months when most renewals are due.
+
+```{r}
+
+```
+
+## Question 6: how Does the Proximity to Major Cities, Rivers, and Airports Influence Business Distribution Across Municipalities?
+
+**Objective:** determine if there's a correlation between the number or type of businesses in a municipality and its proximity to key geographical and infrastructural landmarks
+**Skills Practiced:** geospatial analysis, data visualization on maps, correlation analysis.
+**Expected Outcome:** a map heatmap map highlighting areas with dense business activity + major cities, rivers and airports (infra)
+
+```{r}
+
+```
+
