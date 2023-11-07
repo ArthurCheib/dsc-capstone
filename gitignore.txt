@@ -2,6 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
-1-commercial_licenses_original.csv
-2-commercial_licenses_translated.csv
-3-commercial_licenses_cleaned.csv
+.Rproj.user/clean-data
