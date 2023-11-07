@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+X.api-passwords
+1-commercial_licenses_original.csv
+2-commercial_licenses_translated.csv
+3-commercial_licenses_cleaned
